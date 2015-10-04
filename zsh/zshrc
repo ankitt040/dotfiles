@@ -7,26 +7,167 @@ HISTSIZE=10000
 SAVEHIST=10000
 HISTFILE=/home/arindam/.zsh_history
 
-compinit
-zstyle ':completion:*' menu select
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
 setopt MENU_COMPLETE
 setopt completealiases
-zstyle ':completion:*:*:kill:*' menu yes select
-zstyle ':completion:*:kill:*' force-list always
-zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm"
 setopt correctall
 setopt extended_glob
 setopt autocd
 setopt interactivecomments
 # setopt noclobber
+setopt inc_append_history
+setopt prompt_subst
+setopt share_history
+setopt HIST_IGNORE_DUPS
+setopt histignorealldups
+setopt extended_history
+setopt autopushd pushdsilent pushdtohome
+setopt pushdignoredups
+setopt pushdminus
+setopt completeinword
+setopt pushd_ignore_dups
+
+
+compinit
+
+grmlcomp() {
+    (( ${+_comps} )) || return 1
+
+    # allow one error for every three characters typed in approximate completer
+    zstyle ':completion:*:approximate:'    max-errors 'reply=( $((($#PREFIX+$#SUFFIX)/3 )) numeric )'
+
+    # don't complete backup files as executables
+    zstyle ':completion:*:complete:-command-::commands' ignored-patterns '(aptitude-*|*\~)'
+
+    # start menu completion only if it could find no unambiguous initial string
+    zstyle ':completion:*:correct:*'       insert-unambiguous true
+    zstyle ':completion:*:corrections'     format $'%{\e[0;31m%}%d (errors: %e)%{\e[0m%}'
+    zstyle ':completion:*:correct:*'       original true
+
+    # activate color-completion
+    zstyle ':completion:*:default'         list-colors ${(s.:.)LS_COLORS}
+
+    # format on completion
+    zstyle ':completion:*:descriptions'    format $'%{\e[0;31m%}completing %B%d%b%{\e[0m%}'
+
+    # automatically complete 'cd -<tab>' and 'cd -<ctrl-d>' with menu
+    # zstyle ':completion:*:*:cd:*:directory-stack' menu yes select
+
+    # insert all expansions for expand completer
+    zstyle ':completion:*:expand:*'        tag-order all-expansions
+    zstyle ':completion:*:history-words'   list false
+
+    # activate menu
+    zstyle ':completion:*:history-words'   menu yes
+
+    # ignore duplicate entries
+    zstyle ':completion:*:history-words'   remove-all-dups yes
+    zstyle ':completion:*:history-words'   stop yes
+
+    # match uppercase from lowercase
+    zstyle ':completion:*'                 matcher-list 'm:{a-z}={A-Z}'
+
+    # separate matches into groups
+    zstyle ':completion:*:matches'         group 'yes'
+    zstyle ':completion:*'                 group-name ''
+
+        zstyle ':completion:*'               menu select
+
+    zstyle ':completion:*:messages'        format '%d'
+    zstyle ':completion:*:options'         auto-description '%d'
+
+    # describe options in full
+    zstyle ':completion:*:options'         description 'yes'
+
+    # on processes completion complete all user processes
+    zstyle ':completion:*:processes'       command 'ps -au$USER'
+
+    # offer indexes before parameters in subscripts
+    zstyle ':completion:*:*:-subscript-:*' tag-order indexes parameters
+
+    # provide verbose completion information
+    zstyle ':completion:*'                 verbose true
+
+    # recent (as of Dec 2007) zsh versions are able to provide descriptions
+    # for commands (read: 1st word in the line) that it will list for the user
+    # to choose from. The following disables that, because it's not exactly fast.
+    zstyle ':completion:*:-command-:*:'    verbose false
+
+    # set format for warnings
+    zstyle ':completion:*:warnings'        format $'%{\e[0;31m%}No matches for:%{\e[0m%} %d'
+
+    # define files to ignore for zcompile
+    zstyle ':completion:*:*:zcompile:*'    ignored-patterns '(*~|*.zwc)'
+    zstyle ':completion:correct:'          prompt 'correct to: %e'
+
+    # Ignore completion functions for commands you don't have:
+    zstyle ':completion::(^approximate*):*:functions' ignored-patterns '_*'
+
+    # Provide more processes in completion of programs like killall:
+    zstyle ':completion:*:processes-names' command 'ps c -u ${USER} -o command | uniq'
+
+    # complete manual by their section
+    zstyle ':completion:*:manuals'    separate-sections true
+    zstyle ':completion:*:manuals.*'  insert-sections   true
+    zstyle ':completion:*:man:*'      menu yes select
+
+
+    # provide .. as a completion
+    zstyle ':completion:*' special-dirs ..
+
+    # run rehash on completion so new installed program are found automatically:
+    _force_rehash() {
+        (( CURRENT == 1 )) && rehash
+        return 1
+    }
+
+    ## correction
+    # some people don't like the automatic correction - so run 'NOCOR=1 zsh' to deactivate it
+    if [[ "$NOCOR" -gt 0 ]] ; then
+        zstyle ':completion:*' completer _oldlist _expand _force_rehash _complete _files _ignored
+        setopt nocorrect
+    else
+        # try to be smart about when to use what completer...
+        setopt correct
+        zstyle -e ':completion:*' completer '
+            if [[ $_last_try != "$HISTNO$BUFFER$CURSOR" ]] ; then
+                _last_try="$HISTNO$BUFFER$CURSOR"
+                reply=(_complete _match _ignored _prefix _files)
+            else
+                if [[ $words[1] == (rm|mv) ]] ; then
+                    reply=(_complete _files)
+                else
+                    reply=(_oldlist _expand _force_rehash _complete _ignored _correct _approximate _files)
+                fi
+            fi'
+    fi
+
+
+    # use generic completion system for programs not yet defined; (_gnu_generic works
+    # with commands that provide a --help option with "standard" gnu-like output.)
+    for compcom in cp deborphan df feh fetchipac gpasswd head hnb ipacsum mv \
+                   pal stow uname ; do
+        [[ -z ${_comps[$compcom]} ]] && compdef _gnu_generic ${compcom}
+    done; unset compcom
+
+    # see upgrade function in this file
+    # compdef _hosts upgrade
+}
+grmlcomp
+# zstyle ':completion:*' menu select
+# zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+# zstyle ':completion:*' accept-exact '*(N)'
+# zstyle ':completion:*' use-cache on
+# zstyle ':completion:*' cache-path ~/.cache/zsh
+# zstyle ':completion:*:*:kill:*' menu yes select
+# zstyle ':completion:*:kill:*' force-list always
+# zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm"
+# zstyle ':completion:*:default'         list-colors ${(s.:.)LS_COLORS}
 
 promptinit
 # Set default prompt
 # prompt bart
 export KEYTIMEOUT=1
 
-setopt prompt_subst
 zstyle ':vcs_info:*' enable git
 zstyle ':vcs_info:git*:*' get-revision true
 zstyle ':vcs_info:git*:*' check-for-changes true
@@ -95,7 +236,6 @@ PROMPT='%{$fg[green]%}%c%{$reset_color%}$(git_prompt_info) %{$fg[red]%}%(!.#.»)
 RPS1='%{$fg[magenta]%}[%@] %{$fg[blue]%}%~%{$reset_color%} ${return_code} '
 # }
 
-setopt HIST_IGNORE_DUPS
 
 ttyctl -f
 
@@ -111,13 +251,6 @@ chpwd() {
 
 DIRSTACKSIZE=20
 
-setopt autopushd pushdsilent pushdtohome
-
-## Remove duplicate entries
-setopt pushdignoredups
-
-## This reverts the +/- operators.
-setopt pushdminus
 
 # adds new paths executable
 zstyle ':completion:*' rehash true
@@ -168,10 +301,80 @@ bindkey -M vicmd 'k' history-substring-search-up
 bindkey -M vicmd 'j' history-substring-search-down
 
 
+function zrcgotwidget() {
+    (( ${+widgets[$1]} ))
+}
+
+function zrcbindkey() {
+    if (( ARGC )) && zrcgotwidget ${argv[-1]}; then
+        bindkey "$@"
+    fi
+}
+
+function bind2maps () {
+    local i sequence widget
+    local -a maps
+
+    while [[ "$1" != "--" ]]; do
+        maps+=( "$1" )
+        shift
+    done
+    shift
+
+    if [[ "$1" == "-s" ]]; then
+        shift
+        sequence="$1"
+    else
+        sequence="${key[$1]}"
+    fi
+    widget="$2"
+
+    [[ -z "$sequence" ]] && return 1
+
+    for i in "${maps[@]}"; do
+        zrcbindkey -M "$i" "$sequence" "$widget"
+    done
+}
+
+typeset -A key
+key=(
+    Home     "${terminfo[khome]}"
+    End      "${terminfo[kend]}"
+    Insert   "${terminfo[kich1]}"
+    Delete   "${terminfo[kdch1]}"
+    Up       "${terminfo[kcuu1]}"
+    Down     "${terminfo[kcud1]}"
+    Left     "${terminfo[kcub1]}"
+    Right    "${terminfo[kcuf1]}"
+    PageUp   "${terminfo[kpp]}"
+    PageDown "${terminfo[knp]}"
+    BackTab  "${terminfo[kcbt]}"
+)
+bind2maps emacs             -- Home   beginning-of-somewhere
+bind2maps       viins vicmd -- Home   vi-beginning-of-line
+bind2maps emacs             -- End    end-of-somewhere
+bind2maps       viins vicmd -- End    vi-end-of-line
+bind2maps emacs viins       -- Insert overwrite-mode
+bind2maps             vicmd -- Insert vi-insert
+bind2maps emacs             -- Delete delete-char
+bind2maps       viins vicmd -- Delete vi-delete-char
+bind2maps emacs viins vicmd -- Up     up-line-or-search
+bind2maps emacs viins vicmd -- Down   down-line-or-search
+bind2maps emacs             -- Left   backward-char
+bind2maps       viins vicmd -- Left   vi-backward-char
+bind2maps emacs             -- Right  forward-char
+bind2maps       viins vicmd -- Right  vi-forward-char
+bind2maps emacs viins vicmd -- -s '\eOc' forward-word
+bind2maps emacs viins vicmd -- -s '\eOd' backward-word
+# These are for xterm:
+bind2maps emacs viins vicmd -- -s '\e[1;5C' forward-word
+bind2maps emacs viins vicmd -- -s '\e[1;5D' backward-word
+
 # User configuration
 
 export PATH="/usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/home/arindam/.local/bin:/home/arindam/bin:/home/arindam/All/pintos/src/utils:/home/arindam/.cabal/bin"
 # export MANPATH="/usr/local/man:$MANPATH"
+typeset -U path cdpath fpath manpath
 
 export TERM='xterm-256color'
 
@@ -179,6 +382,18 @@ export TERM='xterm-256color'
 export LANG=en_US.UTF-8
 
 export EDITOR='vim'
+
+export LESS_TERMCAP_mb=$'\E[01;31m'
+export LESS_TERMCAP_md=$'\E[01;31m'
+export LESS_TERMCAP_me=$'\E[0m'
+export LESS_TERMCAP_se=$'\E[0m'
+export LESS_TERMCAP_so=$'\E[01;44;33m'
+export LESS_TERMCAP_ue=$'\E[0m'
+export LESS_TERMCAP_us=$'\E[01;32m'
+
+REPORTTIME=5
+
+typeset -U path cdpath fpath manpath
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 
@@ -202,6 +417,7 @@ alias ls='ls --color=auto'
 alias -g gp=' | grep -i'
 compdef sc='systemctl'
 alias xstart="sudo /opt/lampp/xampp start"
+alias xam="sudo /opt/lampp/xampp"
 alias xstop="sudo /opt/lampp/xampp stop"
 alias mysqlrun="/opt/lampp/bin/mysql -u root"
 alias ter="gnome-terminal && exit"
@@ -220,6 +436,7 @@ alias vid="cd /Arindam/Videos"
 alias ez="vim ~/.zshrc"
 alias ev="vim ~/.vimrc"
 alias ei="vim ~/.i3/config"
+alias er="vim ~/.Xresources"
 alias et="vim ~/.tmux.conf"
 alias sz="source ~/.zshrc"
 alias xo="xdg-open"
@@ -232,6 +449,11 @@ alias np="ncmpcpp"
 alias tn="tmux new -s Blade"
 alias ta="tmux attach"
 alias xup="xrdb ~/.Xresources"
+
+alias laf='ls -a .*(.)'
+alias lad='ls -d .*(/)'
+alias ll="ls -lah --group-directories-first"
+alias da='du -sch'
 
 gvim () { command gvim --remote-silent "$@" || command gvim "$@"; }
 #
@@ -324,5 +546,28 @@ rg() {
     else
         exit
     fi
+}
+
+cd() {
+    if (( ${#argv} == 1 )) && [[ -f ${1} ]]; then
+        [[ ! -e ${1:h} ]] && return 1
+        print "Correcting ${1} to ${1:h}"
+        builtin cd ${1:h}
+    else
+        builtin cd "$@"
+    fi
+}
+
+mkcd() {
+    if (( ARGC != 1 )); then
+        printf 'usage: mkcd <new-directory>\n'
+        return 1;
+    fi
+    if [[ ! -d "$1" ]]; then
+        command mkdir -p "$1"
+    else
+        printf '`%s'\'' already exists: cd-ing.\n' "$1"
+    fi
+    builtin cd "$1"
 }
 cd "$AUTOCD"
