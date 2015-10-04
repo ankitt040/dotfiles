@@ -1,0 +1,328 @@
+autoload -U compinit promptinit
+autoload -U colors && colors
+autoload -Uz vcs_info
+
+# bindkey -e
+HISTSIZE=10000
+SAVEHIST=10000
+HISTFILE=/home/arindam/.zsh_history
+
+compinit
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+setopt MENU_COMPLETE
+setopt completealiases
+zstyle ':completion:*:*:kill:*' menu yes select
+zstyle ':completion:*:kill:*' force-list always
+zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm"
+setopt correctall
+setopt extended_glob
+setopt autocd
+setopt interactivecomments
+# setopt noclobber
+
+promptinit
+# Set default prompt
+# prompt bart
+export KEYTIMEOUT=1
+
+setopt prompt_subst
+zstyle ':vcs_info:*' enable git
+zstyle ':vcs_info:git*:*' get-revision true
+zstyle ':vcs_info:git*:*' check-for-changes true
+# precmd(){
+#     vcs_info
+# }
+
+GIT_PROMPT_PREFIX="%{$fg[green]%}───‹%{$reset_color%}"
+GIT_PROMPT_SUFFIX="%{$fg[green]%}›%{$reset_color%}"
+GIT_PROMPT_MERGING="%{$fg_bold[magenta]%}⚡︎%{$reset_color%}"
+GIT_PROMPT_UNTRACKED="%{$fg_bold[red]%}●%{$reset_color%}"
+GIT_PROMPT_MODIFIED="%{$fg_bold[yellow]%}●%{$reset_color%}"
+GIT_PROMPT_STAGED="%{$fg_bold[green]%}●%{$reset_color%}"
+
+# Show Git branch/tag, or name-rev if on detached head
+parse_git_branch() {
+  (git symbolic-ref -q HEAD || git name-rev --name-only --no-undefined --always HEAD) 2> /dev/null
+}
+
+# Show different symbols as appropriate for various Git repository states
+parse_git_state() {
+
+  # Compose this value via multiple conditional appends.
+  local GIT_STATE=""
+
+
+  local GIT_DIR="$(git rev-parse --git-dir 2> /dev/null)"
+  if [ -n $GIT_DIR ] && test -r $GIT_DIR/MERGE_HEAD; then
+    GIT_STATE=$GIT_STATE$GIT_PROMPT_MERGING
+  fi
+
+  if [[ -n $(git ls-files --other --exclude-standard 2> /dev/null) ]]; then
+    GIT_STATE=$GIT_STATE$GIT_PROMPT_UNTRACKED
+  fi
+
+  if ! git diff --quiet 2> /dev/null; then
+    GIT_STATE=$GIT_STATE$GIT_PROMPT_MODIFIED
+  fi
+
+  if ! git diff --cached --quiet 2> /dev/null; then
+    GIT_STATE=$GIT_STATE$GIT_PROMPT_STAGED
+  fi
+
+  if [[ -n $GIT_STATE ]]; then
+    echo "$GIT_PROMPT_PREFIX$GIT_STATE"
+  fi
+
+}
+
+# If inside a Git repository, print its branch and state
+git_prompt_info() {
+  local git_where="$(parse_git_branch)"
+  [ -n "$git_where" ] && echo "$(parse_git_state) %{$fg[yellow]%}${git_where#(refs/heads/|tags/)}$GIT_PROMPT_SUFFIX"
+}
+
+
+local return_code="%(?..%{$fg[red]%}%? ↵%{$reset_color%})"
+
+local user_host="%{$terminfo[bold]$fg[green]%} SageEx $reset_color%}"
+local current_dir="%{$terminfo[bold]$fg[blue]%} %~%{$reset_color%}"
+# local git_branch="${vcs_info_msg_0_}%{$reset_color%}"
+# precmd(){
+# PROMPT='┌───(${user_host})──in──(${current_dir} )$(git_prompt_info)'$'\n''└─$ '
+# RPS1=$'${return_code}'
+PROMPT='%{$fg[green]%}%c%{$reset_color%}$(git_prompt_info) %{$fg[red]%}%(!.#.»)%{$reset_color%} '
+RPS1='%{$fg[magenta]%}[%@] %{$fg[blue]%}%~%{$reset_color%} ${return_code} '
+# }
+
+setopt HIST_IGNORE_DUPS
+
+ttyctl -f
+
+DIRSTACKFILE="$HOME/.cache/dirstack"
+if [[ -f $DIRSTACKFILE ]] && [[ $#dirstack -eq 0 ]]; then
+  dirstack=( ${(f)"$(< $DIRSTACKFILE)"} )
+  [[ -d $dirstack[1] ]] && cd $HOME
+  # [[ -d $dirstack[1] ]] && cd $dirstack[1]
+fi
+chpwd() {
+  print -l $PWD ${(u)dirstack} >$DIRSTACKFILE
+}
+
+DIRSTACKSIZE=20
+
+setopt autopushd pushdsilent pushdtohome
+
+## Remove duplicate entries
+setopt pushdignoredups
+
+## This reverts the +/- operators.
+setopt pushdminus
+
+# adds new paths executable
+zstyle ':completion:*' rehash true
+
+# Set up help -- ok
+autoload -U run-help
+autoload run-help-git
+# unalias run-help
+alias help=run-help
+
+# Command Highlighting
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+
+# Set terminal Title
+case $TERM in
+  (*xterm* |*urxvt*)
+
+    # Write some info to terminal title.
+    # This is seen when the shell prompts for input.
+    function precmd {
+      print -Pn "\e]0;zsh%L %(1j,%j job%(2j|s|); ,)%~\a"
+    }
+    # Write command and args to terminal title.
+    # This is seen while the shell waits for a command to complete.
+    function preexec {
+      printf "\033]0;%s\a" "$1"
+    }
+
+  ;;
+esac
+
+source /home/arindam/.zsh-history-substring-search.zsh
+# bind UP and DOWN arrow keys
+zmodload zsh/terminfo
+bindkey "$terminfo[kcuu1]" history-substring-search-up
+bindkey "$terminfo[kcud1]" history-substring-search-down
+
+# # bind UP and DOWN arrow keys (compatibility fallback
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
+
+# bind P and N for EMACS mode
+bindkey -M emacs '^P' history-substring-search-up
+bindkey -M emacs '^N' history-substring-search-down
+
+# bind k and j for VI mode
+bindkey -M vicmd 'k' history-substring-search-up
+bindkey -M vicmd 'j' history-substring-search-down
+
+
+# User configuration
+
+export PATH="/usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin:/home/arindam/.local/bin:/home/arindam/bin:/home/arindam/All/pintos/src/utils:/home/arindam/.cabal/bin"
+# export MANPATH="/usr/local/man:$MANPATH"
+
+export TERM='xterm-256color'
+
+# You may need to manually set your language environment
+export LANG=en_US.UTF-8
+
+export EDITOR='vim'
+# Compilation flags
+# export ARCHFLAGS="-arch x86_64"
+
+# ssh
+# export SSH_KEY_PATH="~/.ssh/dsa_id"
+
+# Auto-open tmux session in a new terminal
+# tmux attach &> /dev/null
+
+# Set personal aliases, overriding those provided by oh-my-zsh libs,
+# plugins, and themes. Aliases can be placed here, though oh-my-zsh
+# users are encouraged to define aliases within the ZSH_CUSTOM folder.
+# For a full list of active aliases, run `alias`.
+#
+# Example aliases
+
+# alias zshconfig="mate ~/.zshrc"
+# alias ohmyzsh="mate ~/.oh-my-zsh"
+# alias gvim='gvim --remote-tab-silent'
+alias ls='ls --color=auto'
+alias -g gp=' | grep -i'
+compdef sc='systemctl'
+alias xstart="sudo /opt/lampp/xampp start"
+alias xstop="sudo /opt/lampp/xampp stop"
+alias mysqlrun="/opt/lampp/bin/mysql -u root"
+alias ter="gnome-terminal && exit"
+alias vi="vim"
+alias vv="vim -u ~/.essential.vim"
+alias c="clear"
+alias q="exit"
+alias wip="ip a | grep inet"
+alias code="cd /home/arindam/All && ls"
+alias codep="cd /home/arindam/All/prog"
+alias codehs="cd /home/arindam/All/hs"
+alias codepl="cd /home/arindam/All/pl"
+alias codepi="cd /home/arindam/All/pintos"
+alias inp="cd /Arindam/STUDY_LIBRARY/Informatic_Practices && ls"
+alias vid="cd /Arindam/Videos"
+alias ez="vim ~/.zshrc"
+alias ev="vim ~/.vimrc"
+alias ei="vim ~/.i3/config"
+alias et="vim ~/.tmux.conf"
+alias sz="source ~/.zshrc"
+alias xo="xdg-open"
+alias -g pm="pacman"
+alias y="yaourt"
+alias g++="g++ -std=c++14"
+# alias eclimd="/home/arindam/.eclipse/org.eclipse.platform_4.4.2_1543616141_linux_gtk_x86_64/eclimd"
+# alias emc="emacsclient"
+alias np="ncmpcpp"
+alias tn="tmux new -s Blade"
+alias ta="tmux attach"
+alias xup="xrdb ~/.Xresources"
+
+gvim () { command gvim --remote-silent "$@" || command gvim "$@"; }
+#
+function proxy_on() {
+    export no_proxy="localhost,127.0.0.1,localaddress,.localdomain.com"
+
+    if (( $# > 0 )); then
+        valid=$(echo $@ | sed -n 's/\([0-9]\{1,3\}.\)\{4\}:\([0-9]\+\)/&/p')
+        if [[ $valid != $@ ]]; then
+            >&2 echo "Invalid address"
+            return 1
+        fi
+
+        export http_proxy="http://$1/"
+        export https_proxy=$http_proxy
+        export ftp_proxy=$http_proxy
+        export rsync_proxy=$http_proxy
+        echo "Proxy environment variable set."
+        return 0
+    fi
+
+    # echo -n "username: "; read username
+    # if [[ $username != "" ]]; then
+    #     echo -n "password: "
+    #     read -es password
+    #     local pre="$username:$password@"
+    # fi
+
+    echo -n "server: "; read server
+    echo -n "port: "; read port
+    export http_proxy="http://$pre$server:$port/"
+    export https_proxy=$http_proxy
+    export ftp_proxy=$http_proxy
+    export rsync_proxy=$http_proxy
+    export HTTP_PROXY=$http_proxy
+    export HTTPS_PROXY=$http_proxy
+    export FTP_PROXY=$http_proxy
+    export RSYNC_PROXY=$http_proxy
+}
+
+function proxy_off(){
+    unset http_proxy
+    unset https_proxy
+    unset ftp_proxy
+    unset rsync_proxy
+    echo -e "Proxy environment variable removed."
+}
+
+function zle-keymap-select zle-line-init
+{
+# change cursor shape in iTerm2
+    if [ "$TERM" = "xterm-256color" ]; then
+        case $KEYMAP in
+            vicmd)      echo -ne "\e[2 q";;
+            viins|main)     echo -ne "\e[6 q";;
+        esac
+    elif [ "$TERM" = "screen-256color" ]; then
+        case $KEYMAP in
+            vicmd)      echo -ne "\e[2 q";;
+            viins|main)     echo -ne "\e[6 q";;
+        esac
+    elif [ "$TERM" = "rxvt-unicode-256color" ]; then
+        case $KEYMAP in
+            vicmd)      echo -ne "\e[2 q";;
+            viins|main)     echo -ne "\e[6 q";;
+        esac
+    fi
+    zle reset-prompt
+    zle -R
+}
+function zle-line-finish
+{
+    if [ "$TERM" = "xterm-256color" ]; then
+        echo -ne "\e[2 q"
+    elif [ "$TERM" = "screen-256color" ];then
+        echo -ne "\e[2 q"
+    elif [ "$TERM" = "rxvt-unicode-256color" ];then
+        echo -ne "\e[2 q"
+    fi
+}
+
+zle -N zle-line-init
+zle -N zle-line-finish
+zle -N zle-keymap-select
+
+rg() {
+    if [ -z "$RANGER_LEVEL" ]
+    then
+        ranger
+    else
+        exit
+    fi
+}
+cd "$AUTOCD"

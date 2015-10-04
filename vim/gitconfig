@@ -1,0 +1,7 @@
+[user]
+	email = arindam.banerjee.790@gmail.com
+	name = Arindam Banerjee
+[core]
+	editor = vim
+[merge]
+	tool = vimdiff

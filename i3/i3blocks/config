@@ -1,0 +1,106 @@
+[volume]
+#label=♪
+label=:
+command=~/.config/i3blocks/volume.sh
+# color=#00afaf
+# color=#81DAF5
+color=#dddddd
+interval=1
+# signal=1
+
+
+[separator]
+
+[cpu]
+label= CPU:
+command=~/.config/i3blocks/cpu_usage
+# color=#F80000
+color=#dddddd
+min_width=CPU: 100.00%
+interval=10
+
+[separator]
+
+[Memory]
+label=:
+command=~/.config/i3blocks/memory.sh
+# color=#859900
+# color=#2EFE2E
+color=#dddddd
+separator=false
+interval=30
+
+[separator]
+
+[wireless]
+label=:
+command=/usr/lib/i3blocks/wifi
+# color=#b58900
+# color=#657b83
+color=#dddddd
+interval=10
+
+[wifi]
+label=:
+command=~/.config/i3blocks/networkwlo1
+# color=#dc322f
+# color=#FF6600
+color=#dddddd
+interval=10
+
+[ethernet]
+label=:
+command=~/.config/i3blocks/network
+color=#dddddd
+# color=#dc322f
+# color=#FF6600
+interval=10
+
+[separator]
+
+[download]
+label=:
+command=~/.config/i3blocks/bandwidth.sh rx
+# color=#2EFE2E
+color=#dddddd
+# color=#859900
+interval=1 # IMPORTANT
+min_width=: 1000 kB/s
+#separator=false
+
+[separator]
+
+[battery]
+command=~/.config/i3blocks/battery
+# color=#859900
+color=#dddddd
+markup=pango
+interval=5
+
+[Date]
+label=:
+command=date '+%a %b %d, %Y'
+# color=#b58900
+color=#dddddd
+# color=#BFFF00
+interval=5
+
+[separator]
+
+[Time]
+label=:
+#label=:
+#command=date '+%H:%M'
+command=~/.config/i3blocks/date.sh
+# color=#b58900
+color=#dddddd
+# color=#BFFF00
+interval=1
+
+[separator]
+#full_text=]
+# full_text=
+# align=center
+# color=#FFFDD0
+# separator=false
+# separator_block_width=5

@@ -1,0 +1,93 @@
+#include "/home/arindam/.urxvt/Colors/Github.xrdb"
+/* First is dark next is lighter */
+/* Black */
+*color0:       Ansi_0_Color
+*color8:       Ansi_8_Color
+/* Red */
+*color1:       Ansi_1_Color
+*color9:       Ansi_9_Color
+/* Green */
+*color2:       Ansi_2_Color
+*color10:      Ansi_10_Color
+/* Yellow */
+*color3:       Ansi_3_Color
+*color11:      Ansi_11_Color
+/* Blue */
+*color4:       Ansi_4_Color
+*color12:      Ansi_12_Color
+/* Magenta */
+*color5:       Ansi_5_Color
+*color13:      Ansi_13_Color
+/* Cyan */
+*color6:       Ansi_6_Color
+*color14:      Ansi_14_Color
+/* White */
+*color7:       Ansi_7_Color
+*color15:      Ansi_15_Color
+
+*colorBD:      Bold_Color
+*colorIT:      Italic_Color
+*colorUL:      Underline_Color
+*foreground:   Foreground_Color
+*background:   Background_Color
+*cursorColor:  Cursor_Color
+
+
+/*XFT SETTINGS*/
+Xft.autohint: 0
+Xft.lcdfilter:  lcddefault
+/* Xft.hintstyle:  Full */
+Xft.hintstyle:  hintslight
+Xft.hinting: 1
+Xft.antialias: True
+Xft.rgba: rgb
+
+/*XTERM SETTINGS*/
+XTerm*utf8: 1
+xterm*saveLines: 10000
+xterm*cutchars: "`\"'&()*,:;<=>?[\\]^{|}$"
+*faceName: Roboto Mono Plus Nerd File Types Plus Font Awesome
+/* *faceName: Inconsolata Plus Nerd File Types Plus Font Awesome */
+*faceSize: 10.5
+/* Xft*forcePackedFont: true */
+xterm*scrollTtyKeypress: true
+xterm*scrollTtyOutput: false
+xterm*savelines: 16384
+XTerm*fastScroll:True
+XTerm*vt100.translations: #override \
+        Shift <KeyPress> Up:      scroll-back(1, line) \n\
+        Shift <KeyPress> Down:    scroll-forw(1, line) \n\
+        Shift <KeyPress> Insert:  string(0x1b) string(0x5b) string(2;2~) \n\
+        Ctrl Shift <KeyPress> C:  select-end(PRIMARY,CLIPBOARD,CUT_BUFFER0) \n\
+        Ctrl Shift <KeyPress> V:  insert-selection(CLIPBOARD, CUT_BUFFER0, PRIMARY)
+
+
+/*URxvt SETTINGS*/
+URxvt.saveLines: 10000
+URxvt.cutchars: "`\"'&()*,:;<=>?[\\]^{|}$"
+
+URxvt.font: xft:Roboto Mono:size=10.5, \
+            xft:Inconsolata for Powerline Plus Nerd File Types Mono:size=12, \
+            xft:fontawesome-webfont:size=12
+URxvt.italicFont: xft:Consolas:italic:size=11, \
+            xft:Inconsolata for Powerline Plus Nerd File Types Mono:size=12, \
+            xft:fontawesome-webfont:size=12
+URxvt.letterSpace: -1
+
+URxvt.scrollBar: false
+URxvt*scrollTtyKeypress:      true
+URxvt*scrollTtyOutput:        false
+URxvt*skipScroll:             true
+
+URxvt.iso14755: False
+URxvt.perl-ext-common: default,clipboard,url-select,keyboard-select,font-size
+URxvt.url-select.launcher:  firefox
+URxvt.url-select.underline: true
+URxvt.keysym.Shift-Control-C: perl:clipboard:copy
+URxvt.keysym.Shift-Control-V: perl:clipboard:paste
+URxvt.clipboard.copycmd:  xsel -ib
+URxvt.clipboard.pastecmd: xsel -ob
+URxvt.intensityStyles: false
+URxvt.keysym.Control-Up: perl:font-size:increase
+URxvt.keysym.Control-Down: perl:font-size:decrease
+

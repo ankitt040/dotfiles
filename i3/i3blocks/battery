@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+#
+# A battery indicator blocklet script for i3blocks
+
+from subprocess import check_output
+
+status = check_output(['acpi'], universal_newlines=True)
+state = status.split(": ")[1].split(", ")[0]
+commasplitstatus = status.split(", ")
+percentleft = int(commasplitstatus[1].rstrip("%\n"))
+
+# FA_LIGHTNING = "\uf0e7"
+FA_LIGHTNING = "\uf240:"
+FA_PLUG = "\uf1e6"
+
+# FA_PLUG = "<span color='#859900'>{}</span>".format(FA_PLUG)
+# FA_PLUG = "<span color='#2EFE2E'>{}</span>".format(FA_PLUG)
+# fulltext = "<span color='#2EFE2E'>{}</span>".format(FA_LIGHTNING)
+FA_PLUG = "<span color='#dddddd'>{}</span>".format(FA_PLUG)
+fulltext ="<span color='#dddddd'>{}</span>".format(FA_LIGHTNING)
+# fulltext = ""
+timeleft = ""
+
+if state == "Discharging":
+    time = commasplitstatus[-1].split()[0]
+    time = ":".join(time.split(":")[0:2])
+    timeleft = " ({})".format(time)
+    timeleft = "<span color='yellow'>{}</span>".format(timeleft)
+else:
+    fulltext += " " + FA_PLUG
+
+def color(percent):
+    if percent < 10:
+        # return "#FF0000"
+        return "#dddddd"
+    if percent < 20:
+        # return "#FF3300"
+        return "#dddddd"
+    if percent < 30:
+        # return "#FF6600"
+        return "#dddddd"
+    if percent < 40:
+        # return "#FF9900"
+        return "#dddddd"
+    if percent < 50:
+        # return "#FFCC00"
+        return "#dddddd"
+    if percent < 60:
+        # return "#FFFF00"
+        return "#dddddd"
+    if percent < 70:
+        # return "#FFFF33"
+        return "#dddddd"
+    if percent < 80:
+        # return "#FFFF66"
+        return "#dddddd"
+    # return "#859900"
+    # return "#2EFE2E"
+    return "#dddddd"
+
+form =  ' <span color="{}">{}%</span>'
+fulltext += form.format(color(percentleft), percentleft)
+fulltext += timeleft
+
+print(fulltext)
+print(fulltext)

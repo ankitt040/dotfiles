@@ -1,0 +1,38 @@
+set
+tab_new 
+tab_switch 
+bulkrename
+delete 
+set colorscheme snow
+set colorscheme solarized
+set colorscheme jungle
+set preview_images true
+AliasCommand 
+`lj
+shell
+shell  %s
+search trash
+delete todo.md
+default_linemode 
+h
+mkdir Screenshots
+search base
+search sola
+redraw_window 
+
+rename All
+extracthere 
+help
+rename anime-wallpapers-bleach-ichigo-wallpaper-37030.jpg
+open_with 0
+search prog
+search im
+delete
+search all
+search pr
+open_with subl3
+open_with 1
+open_with 
+open_with 2
+uncut 
+bulkrename %s

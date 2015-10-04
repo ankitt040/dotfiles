@@ -1,0 +1,71 @@
+set gui=tabs
+colorscheme solarized_light
+" colorscheme janus
+" set autocomplete=
+set complete=sfl
+set history=50
+set defsearch=google
+set hintmatching=firstletters
+" nnoremap , <leader>
+set maxitems=15
+"set noinsertmode
+"set showtabline=multitab
+
+nnoremap j 5j
+nnoremap k 5k
+
+nnoremap ; :
+nnoremap : ;
+nnoremap { gT
+nnoremap } gt
+
+
+"nnoremap ,t :tbt Navigation Toolbar<CR>
+"nnoremap ,s :source "~/.pentadactylrc"<cr>
+nnoremap s :tabopen google 
+nnoremap S :open google 
+nnoremap ,t :js toggle_navbar()<CR>
+:js << EOF
+function toggle_navbar() {
+    var nb = document.getElementById('nav-bar');
+    if (!nb)
+        return;
+    nb.style.visibility = (nb.style.visibility == '') ? 'collapse' : '';
+    nb.style.overflow = (nb.style.height == '') ? '' : 'hidden';
+    }
+toggle_navbar();
+EOF
+
+"""" Normal copy, cut, paste, etc.
+" Copy/Stop
+nnoremap <C-c> <C-v><C-c>
+cnoremap <C-c> <C-v><C-c>
+inoremap <C-c> <C-v><C-c>
+nnoremap <C-S-c> <C-c>
+" Paste/Pass through (next)
+"cnoremap <C-v> <C-v><C-v>
+inoremap <C-v> <C-v><C-v>
+noremap <C-S-v> <C-v>
+cnoremap <C-S-v> <C-v>
+inoremap <C-S-v> <C-v>
+" Cut/Decrease URL
+noremap <C-x> <C-v><C-x>
+cnoremap <C-x> <C-v><C-x>
+inoremap <C-x> <C-v><C-x>
+noremap <C-S-x> <C-x>
+cnoremap <C-S-x> <C-x>
+inoremap <C-S-x> <C-x>
+" Select all/Increase URL
+noremap <C-a> <C-v><C-a>
+cnoremap <C-a> <C-v><C-a>
+inoremap <C-a> <C-v><C-a>
+noremap <C-S-a> <C-a>
+cnoremap <C-S-a> <C-a>
+inoremap <C-S-a> <C-a>
+" Undo/Pass through (all)
+noremap <C-z> <C-v><C-z>
+cnoremap <C-z> <C-v><C-z>
+inoremap <C-z> <C-v><C-z>
+noremap <C-S-z> <C-z>
+cnoremap <C-S-z> <C-z>
+inoremap <C-S-z> <C-z>
